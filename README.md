@@ -575,9 +575,10 @@ plt.show()
 null_df = pd.DataFrame(bleach_CL_df.isna().sum(), columns=['Null_Count'])
 null_df[null_df['Null_Count'] != 0]
 ```
-Column                             Null_Count
-------                             ----------
-Substrate_Name	                        12044
+
+|Column                             |Null_Count
+|------                             |----------
+|Substrate_Name	                    |    12044
 
 It seems that the only feature left is a qualitative feature with 12,044 missing values. We could impute this with the most frequent value, but this method does not consider dependencies among feature values. We think it is better to drop this feature all together to preserve sample size. 
 
