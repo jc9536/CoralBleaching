@@ -117,6 +117,7 @@ Data columns (total 62 columns):
 | 59|  Site_Comments                          |2257 non-null   |object 
 | 60|  Sample_Comments                        |2958 non-null   |object 
 | 61|  Bleaching_Comments                     |2669 non-null   |object 
+
 dtypes: float64(41), int64(5), object(16)
 
 ```python
