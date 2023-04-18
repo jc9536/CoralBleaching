@@ -50,72 +50,73 @@ Let's observe our features to determine what could be used in our model analysis
 # Let's see out features and datatypes 
 bleach_df.info()
 ```
+
 RangeIndex: 41361 entries, 0 to 41360
 Data columns (total 62 columns):
- N.  Column                                 Non-Null Count  Dtype  
----  ------                                 --------------  -----  
- 0   Site_ID                                41361 non-null  int64  
- 1   Sample_ID                              41361 non-null  int64  
- 2   Data_Source                            41361 non-null  object 
- 3   Latitude_Degrees                       41361 non-null  float64
- 4   Longitude_Degrees                      41361 non-null  float64
- 5   Ocean_Name                             41361 non-null  object 
- 6   Reef_ID                                28821 non-null  object 
- 7   Realm_Name                             41361 non-null  object 
- 8   Ecoregion_Name                         41358 non-null  object 
- 9   Country_Name                           41360 non-null  object 
- 10  State_Island_Province_Name             41262 non-null  object 
- 11  City_Town_Name                         40228 non-null  object 
- 12  Site_Name                              6932 non-null   object 
- 13  Distance_to_Shore                      41359 non-null  float64
- 14  Exposure                               41361 non-null  object 
- 15  Turbidity                              41355 non-null  float64
- 16  Cyclone_Frequency                      41361 non-null  float64
- 17  Date_Day                               41361 non-null  int64  
- 18  Date_Month                             41361 non-null  int64  
- 19  Date_Year                              41361 non-null  int64  
- 20  Depth_m                                39562 non-null  float64
- 21  Substrate_Name                         28693 non-null  object 
- 22  Percent_Cover                          28906 non-null  float64
- 23  Bleaching_Level                        22531 non-null  object 
- 24  Percent_Bleaching                      34515 non-null  float64
- 25  ClimSST                                41248 non-null  float64
- 26  Temperature_Kelvin                     41213 non-null  float64
- 27  Temperature_Mean                       41229 non-null  float64
- 28  Temperature_Minimum                    41229 non-null  float64
- 29  Temperature_Maximum                    41229 non-null  float64
- 30  Temperature_Kelvin_Standard_Deviation  41229 non-null  float64
- 31  Windspeed                              41232 non-null  float64
- 32  SSTA                                   41213 non-null  float64
- 33  SSTA_Standard_Deviation                41229 non-null  float64
- 34  SSTA_Mean                              41229 non-null  float64
- 35  SSTA_Minimum                           41185 non-null  float64
- 36  SSTA_Maximum                           41229 non-null  float64
- 37  SSTA_Frequency                         41213 non-null  float64
- 38  SSTA_Frequency_Standard_Deviation      41229 non-null  float64
- 39  SSTA_FrequencyMax                      41229 non-null  float64
- 40  SSTA_FrequencyMean                     41229 non-null  float64
- 41  SSTA_DHW                               41213 non-null  float64
- 42  SSTA_DHW_Standard_Deviation            41229 non-null  float64
- 43  SSTA_DHWMax                            41229 non-null  float64
- 44  SSTA_DHWMean                           41229 non-null  float64
- 45  TSA                                    41213 non-null  float64
- 46  TSA_Standard_Deviation                 41229 non-null  float64
- 47  TSA_Minimum                            41229 non-null  float64
- 48  TSA_Maximum                            41229 non-null  float64
- 49  TSA_Mean                               41229 non-null  float64
- 50  TSA_Frequency                          41213 non-null  float64
- 51  TSA_Frequency_Standard_Deviation       41229 non-null  float64
- 52  TSA_FrequencyMax                       41229 non-null  float64
- 53  TSA_FrequencyMean                      41229 non-null  float64
- 54  TSA_DHW                                41213 non-null  float64
- 55  TSA_DHW_Standard_Deviation             41229 non-null  float64
- 56  TSA_DHWMax                             41229 non-null  float64
- 57  TSA_DHWMean                            41229 non-null  float64
- 58  Date                                   41361 non-null  object 
- 59  Site_Comments                          2257 non-null   object 
- 60  Sample_Comments                        2958 non-null   object 
- 61  Bleaching_Comments                     2669 non-null   object 
+| N.|  Column                                 |Non-Null Count  |Dtype  
+|---|  ------                                 |--------------  |-----  
+| 0 |  Site_ID                                |41361 non-null  |int64  
+| 1 |  Sample_ID                              |41361 non-null  |int64  
+| 2 |  Data_Source                            |41361 non-null  |object 
+| 3 |  Latitude_Degrees                       |41361 non-null  |float64
+| 4 |  Longitude_Degrees                      |41361 non-null  |float64
+| 5 |  Ocean_Name                             |41361 non-null  |object 
+| 6 |  Reef_ID                                |28821 non-null  |object 
+| 7 |  Realm_Name                             |41361 non-null  |object 
+| 8 |  Ecoregion_Name                         |41358 non-null  |object 
+| 9 |  Country_Name                           |41360 non-null  |object 
+| 10|  State_Island_Province_Name             |41262 non-null  |object 
+| 11|  City_Town_Name                         |40228 non-null  |object 
+| 12|  Site_Name                              |6932 non-null   |object 
+| 13|  Distance_to_Shore                      |41359 non-null  |float64
+| 14|  Exposure                               |41361 non-null  |object 
+| 15|  Turbidity                              |41355 non-null  |float64
+| 16|  Cyclone_Frequency                      |41361 non-null  |float64
+| 17|  Date_Day                               |41361 non-null  |int64  
+| 18|  Date_Month                             |41361 non-null  |int64  
+| 19|  Date_Year                              |41361 non-null  |int64  
+| 20|  Depth_m                                |39562 non-null  |float64
+| 21|  Substrate_Name                         |28693 non-null  |object 
+| 22|  Percent_Cover                          |28906 non-null  |float64
+| 23|  Bleaching_Level                        |22531 non-null  |object 
+| 24|  Percent_Bleaching                      |34515 non-null  |float64
+| 25|  ClimSST                                |41248 non-null  |float64
+| 26|  Temperature_Kelvin                     |41213 non-null  |float64
+| 27|  Temperature_Mean                       |41229 non-null  |float64
+| 28|  Temperature_Minimum                    |41229 non-null  |float64
+| 29|  Temperature_Maximum                    |41229 non-null  |float64
+| 30|  Temperature_Kelvin_Standard_Deviation  |41229 non-null  |float64
+| 31|  Windspeed                              |41232 non-null  |float64
+| 32|  SSTA                                   |41213 non-null  |float64
+| 33|  SSTA_Standard_Deviation                |41229 non-null  |float64
+| 34|  SSTA_Mean                              |41229 non-null  |float64
+| 35|  SSTA_Minimum                           |41185 non-null  |float64
+| 36|  SSTA_Maximum                           |41229 non-null  |float64
+| 37|  SSTA_Frequency                         |41213 non-null  |float64
+| 38|  SSTA_Frequency_Standard_Deviation      |41229 non-null  |float64
+| 39|  SSTA_FrequencyMax                      |41229 non-null  |float64
+| 40|  SSTA_FrequencyMean                     |41229 non-null  |float64
+| 41|  SSTA_DHW                               |41213 non-null  |float64
+| 42|  SSTA_DHW_Standard_Deviation            |41229 non-null  |float64
+| 43|  SSTA_DHWMax                            |41229 non-null  |float64
+| 44|  SSTA_DHWMean                           |41229 non-null  |float64
+| 45|  TSA                                    |41213 non-null  |float64
+| 46|  TSA_Standard_Deviation                 |41229 non-null  |float64
+| 47|  TSA_Minimum                            |41229 non-null  |float64
+| 48|  TSA_Maximum                            |41229 non-null  |float64
+| 49|  TSA_Mean                               |41229 non-null  |float64
+| 50|  TSA_Frequency                          |41213 non-null  |float64
+| 51|  TSA_Frequency_Standard_Deviation       |41229 non-null  |float64
+| 52|  TSA_FrequencyMax                       |41229 non-null  |float64
+| 53|  TSA_FrequencyMean                      |41229 non-null  |float64
+| 54|  TSA_DHW                                |41213 non-null  |float64
+| 55|  TSA_DHW_Standard_Deviation             |41229 non-null  |float64
+| 56|  TSA_DHWMax                             |41229 non-null  |float64
+| 57|  TSA_DHWMean                            |41229 non-null  |float64
+| 58|  Date                                   |41361 non-null  |object 
+| 59|  Site_Comments                          |2257 non-null   |object 
+| 60|  Sample_Comments                        |2958 non-null   |object 
+| 61|  Bleaching_Comments                     |2669 non-null   |object 
 dtypes: float64(41), int64(5), object(16)
 
 ```python
@@ -124,57 +125,58 @@ dtypes: float64(41), int64(5), object(16)
 null_df = pd.DataFrame(bleach_df.isna().sum(), columns=['Null_Count'])
 null_df[null_df['Null_Count'] != 0]
 ```
-Column                             Null_Count
-------                             ----------
-Reef_ID	                                12540
-Ecoregion_Name	                            3
-Country_Name	                            1
-State_Island_Province_Name	               99
-City_Town_Name	                         1133
-Site_Name	                            34429
-Distance_to_Shore	                        2
-Turbidity	                                6
-Depth_m	                                 1799
-Substrate_Name	                        12668
-Percent_Cover	                        12455
-Bleaching_Level	                        18830
-Percent_Bleaching	                     6846
-ClimSST	                                  113
-Temperature_Kelvin	                      148
-Temperature_Mean	                      132
-Temperature_Minimum	                      132
-Temperature_Maximum	                      132
-Temperature_Kelvin_Standard_Deviation     132
-Windspeed	                              129
-SSTA	                                  148
-SSTA_Standard_Deviation	                  132
-SSTA_Mean	                              132
-SSTA_Minimum	                          176
-SSTA_Maximum	                          132
-SSTA_Frequency	                          148
-SSTA_Frequency_Standard_Deviation	      132
-SSTA_FrequencyMax	                      132
-SSTA_FrequencyMean	                      132
-SSTA_DHW	                              148
-SSTA_DHW_Standard_Deviation	              132
-SSTA_DHWMax	                              132
-SSTA_DHWMean	                          132
-TSA	                                      148
-TSA_Standard_Deviation	                  132
-TSA_Minimum	                              132
-TSA_Maximum	                              132
-TSA_Mean	                              132
-TSA_Frequency	                          148
-TSA_Frequency_Standard_Deviation	      132
-TSA_FrequencyMax	                      132
-TSA_FrequencyMean	                      132
-TSA_DHW	                                  148
-TSA_DHW_Standard_Deviation	              132
-TSA_DHWMax	                              132
-TSA_DHWMean	                              132
-Site_Comments	                        39104
-Sample_Comments	                        38403
-Bleaching_Comments	                    38692
+
+|Column                                |Null_Count
+|------                                |----------
+|Reef_ID	                           |     12540
+|Ecoregion_Name	                       |         3
+|Country_Name	                       |         1
+|State_Island_Province_Name	           |        99
+|City_Town_Name	                       |      1133
+|Site_Name	                           |     34429
+|Distance_to_Shore	                   |         2
+|Turbidity	                           |         6
+|Depth_m	                           |      1799
+|Substrate_Name	                       |     12668
+|Percent_Cover	                       |     12455
+|Bleaching_Level	                   |     18830
+|Percent_Bleaching	                   |      6846
+|ClimSST	                           |       113
+|Temperature_Kelvin	                   |       148
+|Temperature_Mean	                   |       132
+|Temperature_Minimum	               |       132
+|Temperature_Maximum	               |       132
+|Temperature_Kelvin_Standard_Deviation |       132
+|Windspeed	                           |       129
+|SSTA	                               |       148
+|SSTA_Standard_Deviation	           |       132
+|SSTA_Mean	                           |       132
+|SSTA_Minimum	                       |       176
+|SSTA_Maximum	                       |       132
+|SSTA_Frequency	                       |       148
+|SSTA_Frequency_Standard_Deviation	   |       132
+|SSTA_FrequencyMax	                   |       132
+|SSTA_FrequencyMean	                   |       132
+|SSTA_DHW	                           |       148
+|SSTA_DHW_Standard_Deviation	       |       132
+|SSTA_DHWMax	                       |       132
+|SSTA_DHWMean	                       |       132
+|TSA	                               |       148
+|TSA_Standard_Deviation	               |       132
+|TSA_Minimum	                       |       132
+|TSA_Maximum	                       |       132
+|TSA_Mean	                           |       132
+|TSA_Frequency	                       |       148
+|TSA_Frequency_Standard_Deviation	   |       132
+|TSA_FrequencyMax	                   |       132
+|TSA_FrequencyMean	                   |       132
+|TSA_DHW	                           |       148
+|TSA_DHW_Standard_Deviation	           |       132
+|TSA_DHWMax	                           |       132
+|TSA_DHWMean	                       |       132
+|Site_Comments	                       |     39104
+|Sample_Comments	                   |     38403
+|Bleaching_Comments	                   |     38692
 
 Looking at the number of null values for each feature, our target feature **Percent_Bleaching** have a higher number of null values than we would like. For better accuracy and generalizability, we may decide to drop all samples that do not have our target feature.
 
