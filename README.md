@@ -621,7 +621,7 @@ No. of training examples: 22087
 No. of validating examples: 5522   
 No. of testing examples: 6903 
 
-## ENcoding Categorical Features 
+## Encoding Categorical Features 
 ```python
 # Save feature names
 features = X_train.columns
