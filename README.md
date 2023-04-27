@@ -670,3 +670,166 @@ selected_features = [x for x, b in zip(features, selected_features_idx) if b]
 print(selected_features)
 ```
 ['Longitude_Degrees', 'Ocean_Name', 'Realm_Name', 'Ecoregion_Name', 'Date_Year', 'Depth_m', 'Temperature_Kelvin', 'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Frequency', 'SSTA_DHW', 'TSA', 'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_DHW']
+
+## Model Implementation
+We'll be training the following 3 different models and seeing which one works best:
+
+- Random Forest
+- Gradient Boosting 
+- ANN
+
+### Random Forest Model 
+```python
+# Create a random forest regressor object
+rf = RandomForestRegressor()
+
+# Define the hyperparameters to search over in a grid search
+param_grid_rf = {
+    'n_estimators': [100, 500, 1000],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# Create a grid search object to find the best hyperparameters
+grid_search_rf = GridSearchCV(estimator=rf, param_grid=param_grid_rf, cv=5, scoring='neg_mean_squared_error')
+grid_search_rf.fit(X_val_selected, y_val)
+
+# Print the best hyperparameters found in the grid search
+print('Best hyperparameters:', grid_search_rf.best_params_)
+```
+Our first gridsearch returned the best hyperparameters as - 
+
+{'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 1000}
+
+But there are a couple more hyperparameters we could adjust, let's confirm we have the best possible model.
+
+```python
+# Define the hyperparameters to search over in a grid search
+param_grid_rf = {
+    'n_estimators': [1000],
+    'max_depth': [None],
+    'min_samples_split': [2],
+    'min_samples_leaf': [1],
+    "max_features": ["sqrt", "log2", None],
+    "bootstrap": [True, False],
+}
+
+# Create a grid search object to find the best hyperparameters
+grid_search_rf = GridSearchCV(estimator=rf, param_grid=param_grid_rf, cv=5, scoring='neg_mean_squared_error')
+grid_search_rf.fit(X_val_selected, y_val)
+
+# Print the best hyperparameters found in the grid search
+print('Best hyperparameters:', grid_search_rf.best_params_)
+```
+Best hyperparameters: {'bootstrap': True, 'max_depth': None, 'max_features': 'sqrt', 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 1000}
+
+```python
+# Train a random forest regressor on the training set with the best hyperparameters
+rf = RandomForestRegressor(**grid_search_rf.best_params_)
+rf.fit(X_train_selected, y_train)
+
+# Predict on the test set
+y_pred_rf = rf.predict(X_test_selected)
+
+# Calculate the mean squared error and R-squared on the test set
+rmse_rf = mean_squared_error(y_test, y_pred_rf, squared=False)
+r2_rf = r2_score(y_test, y_pred_rf)
+
+print('Test RMSE:', rmse_rf)
+print('Test R-squared:', r2_rf)
+```
+
+Test RMSE: 11.106970059417575
+Test R-squared: 0.6921287879163973
+
+## Gradient Boosting Model 
+```python
+# Create a gradient boosting regressor object
+gbr = GradientBoostingRegressor()
+
+# Define the hyperparameters to search over in a grid search
+param_grid_gbr = {
+    'n_estimators': [100, 500, 1000],
+    'max_depth': [2, 4, 6],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4],
+    'learning_rate': [0.01, 0.1, 1]
+}
+
+# Create a grid search object to find the best hyperparameters
+grid_search_gbr = GridSearchCV(estimator=gbr, param_grid=param_grid_gbr, cv=5, scoring='neg_mean_squared_error')
+grid_search_gbr.fit(X_val_selected, y_val)
+
+# Print the best hyperparameters found in the grid search
+print('Best hyperparameters:', grid_search_gbr.best_params_)
+```
+Best hyperparameters: {'learning_rate': 0.1, 'max_depth': 6, 'min_samples_leaf': 4, 'min_samples_split': 10, 'n_estimators': 500}
+
+```python 
+# Train a gradient boosting regressor on the training set with the best hyperparameters
+gbr = GradientBoostingRegressor(**grid_search_gbr.best_params_)
+gbr.fit(X_train_selected, y_train)
+
+# Predict on the test set
+y_pred_gbr = gbr.predict(X_test_selected)
+
+# Calculate the mean squared error and R-squared on the test set
+rmse_gbr = mean_squared_error(y_test, y_pred_gbr, squared=False)
+r2_gbr = r2_score(y_test, y_pred_gbr)
+
+print('Test RMSE:', rmse_gbr)
+print('Test R-squared:', r2_gbr)
+```
+Test RMSE: 11.419217545275917
+Test R-squared: 0.6745752554792399
+
+## ANN Model 
+```python
+# Create an MLP regressor object
+mlp = MLPRegressor()
+
+# Define the hyperparameters to search over in a grid search
+param_grid_mlp = {
+    'hidden_layer_sizes': [(10,), (50,), (100,)],
+    'activation': ['relu', 'tanh'],
+    'solver': ['adam', 'lbfgs'],
+    'alpha': [0.0001, 0.001, 0.01],
+    'learning_rate': ['constant', 'adaptive'],
+}
+
+# Create a grid search object to find the best hyperparameters
+grid_search_mlp = GridSearchCV(estimator=mlp, param_grid=param_grid_mlp, cv=5, scoring='neg_mean_squared_error')
+grid_search_mlp.fit(X_val_selected, y_val)
+
+# Print the best hyperparameters found in the grid search
+print('Best hyperparameters:', grid_search_mlp.best_params_)
+```
+
+Our first gridsearch returned the best hyperparameters as - 
+
+{'activation': 'tanh', 'alpha': 0.001, 'hidden_layer_sizes': (100,), 'learning_rate': 'adaptive', 'solver': 'adam'}
+
+But did we find the best amount of layers for our ANN? Let's confirm.
+
+```python 
+# Define the hyperparameters to search over in a grid search
+param_grid_mlp = {
+    'hidden_layer_sizes': [(100,), (100,50), (45,30,15)],
+    'activation': ['tanh'],
+    'solver': ['adam'],
+    'alpha': [0.001],
+    'learning_rate': ['adaptive'],
+    'max_iter': [5000]
+}
+
+# Create a grid search object to find the best hyperparameters
+grid_search_mlp = GridSearchCV(estimator=mlp, param_grid=param_grid_mlp, cv=5, scoring='neg_mean_squared_error')
+grid_search_mlp.fit(X_val_selected, y_val)
+
+# Print the best hyperparameters found in the grid search
+print('Best hyperparameters:', grid_search_mlp.best_params_)
+```
+Best hyperparameters: {'activation': 'tanh', 'alpha': 0.001, 'hidden_layer_sizes': (45, 30, 15), 'learning_rate': 'adaptive', 'max_iter': 5000, 'solver': 'adam'}
+
+Now that we tested the number of layers, the best hyperparameters now are with 3 layers! But is it the most accurate?
