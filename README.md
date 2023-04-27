@@ -25,9 +25,9 @@ import matplotlib.pyplot as plt
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
-from sklearn.feature_selection import SelectKBest, mutual_info_classif
+from sklearn.feature_selection import SelectKBest, f_regression
 ```
 ## Load Dataset 
 ```python
@@ -601,26 +601,39 @@ Now that we have cleaned the dataset, we want to split our data into 3 datasets,
 train_df, test_df = train_test_split(bleach_CL_df, test_size=0.2, random_state=0)
 
 # Separate target feature from the train and test sets 
-Y_test_df = test_df['Percent_Bleaching'].copy()
-test_df = test_df.drop(['Percent_Bleaching'], axis=1)
+y_test = test_df['Percent_Bleaching'].copy()
+X_test = test_df.drop(['Percent_Bleaching'], axis=1)
 
 per_bleach_df = train_df['Percent_Bleaching'].copy()
 train_df = train_df.drop(['Percent_Bleaching'], axis=1)
 
 # Split the train dataset into train and validation set
-X_train, X_test, y_train, y_test = train_test_split(
+X_train, X_val, y_train, y_val = train_test_split(
     train_df, per_bleach_df, test_size=0.2, random_state=0)
 ```
 ```python
 # Let's check the sizes of our data sets 
-
 print(f"No. of training examples: {X_train.shape[0]}")
-print(f"No. of validating examples: {X_test.shape[0]}")
-print(f"No. of testing examples: {test_df.shape[0]}")
+print(f"No. of validating examples: {X_val.shape[0]}")
+print(f"No. of testing examples: {X_test.shape[0]}")
 ```
 No. of training examples: 22087   
 No. of validating examples: 5522   
-No. of testing examples: 6903   
+No. of testing examples: 6903 
+
+## ENcoding Categorical Features 
+```python
+# Save feature names
+features = X_train.columns
+
+# label encode any categorical features
+le = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
+for column in X_train.columns:
+    if X_train[column].dtype == 'object':
+        X_train[column] = le.fit_transform(X_train[column].values.reshape(-1, 1))
+        X_val[column] = le.transform(X_val[column].values.reshape(-1, 1))
+        X_test[column] = le.transform(X_test[column].values.reshape(-1, 1))
+``` 
 
 ## Feature Selection (Mutual Information-Based Feature Selection)
 
@@ -636,70 +649,24 @@ Furthermore, mutual information-based feature selection can capture non-linear r
 # Let's standardize our data before feature selection 
 # Data Preprocessing
 sc_x = StandardScaler()
-X_train.loc[:, ['Distance_to_Shore', 'Turbidity', 'Depth_m', 'Percent_Cover',
-                'ClimSST', 'Temperature_Kelvin', 'Temperature_Mean', 'Temperature_Minimum',
-                'Temperature_Maximum', 'Temperature_Kelvin_Standard_Deviation', 'Windspeed',
-                'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Mean',  'SSTA_Minimum',
-                'SSTA_Maximum', 'SSTA_Frequency', 'SSTA_Frequency_Standard_Deviation',
-                'SSTA_FrequencyMax', 'SSTA_FrequencyMean', 'SSTA_DHW',
-                'SSTA_DHW_Standard_Deviation', 'SSTA_DHWMax', 'SSTA_DHWMean', 'TSA',
-                'TSA_Standard_Deviation', 'TSA_Minimum', 'TSA_Maximum', 'TSA_Mean',
-                'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_FrequencyMax',
-                'TSA_FrequencyMean', 'TSA_DHW', 'TSA_DHW_Standard_Deviation', 'TSA_DHWMax',
-                'TSA_DHWMean']] = sc_x.fit_transform(X_train.loc[:, ['Distance_to_Shore', 'Turbidity', 'Depth_m', 'Percent_Cover',
-                                                                     'ClimSST', 'Temperature_Kelvin', 'Temperature_Mean', 'Temperature_Minimum',
-                                                                     'Temperature_Maximum', 'Temperature_Kelvin_Standard_Deviation', 'Windspeed',
-                                                                     'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Mean',  'SSTA_Minimum',
-                                                                     'SSTA_Maximum', 'SSTA_Frequency', 'SSTA_Frequency_Standard_Deviation',
-                                                                     'SSTA_FrequencyMax', 'SSTA_FrequencyMean', 'SSTA_DHW',
-                                                                     'SSTA_DHW_Standard_Deviation', 'SSTA_DHWMax', 'SSTA_DHWMean', 'TSA',
-                                                                     'TSA_Standard_Deviation', 'TSA_Minimum', 'TSA_Maximum', 'TSA_Mean',
-                                                                     'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_FrequencyMax',
-                                                                     'TSA_FrequencyMean', 'TSA_DHW', 'TSA_DHW_Standard_Deviation', 'TSA_DHWMax',
-                                                                     'TSA_DHWMean']])
-X_test.loc[:, ['Distance_to_Shore', 'Turbidity', 'Depth_m', 'Percent_Cover',
-               'ClimSST', 'Temperature_Kelvin', 'Temperature_Mean', 'Temperature_Minimum',
-               'Temperature_Maximum', 'Temperature_Kelvin_Standard_Deviation', 'Windspeed',
-               'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Mean',  'SSTA_Minimum',
-               'SSTA_Maximum', 'SSTA_Frequency', 'SSTA_Frequency_Standard_Deviation',
-               'SSTA_FrequencyMax', 'SSTA_FrequencyMean', 'SSTA_DHW',
-               'SSTA_DHW_Standard_Deviation', 'SSTA_DHWMax', 'SSTA_DHWMean', 'TSA',
-               'TSA_Standard_Deviation', 'TSA_Minimum', 'TSA_Maximum', 'TSA_Mean',
-               'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_FrequencyMax',
-               'TSA_FrequencyMean', 'TSA_DHW', 'TSA_DHW_Standard_Deviation', 'TSA_DHWMax',
-               'TSA_DHWMean']] = sc_x.transform(X_test.loc[:, ['Distance_to_Shore', 'Turbidity', 'Depth_m', 'Percent_Cover',
-                                       'ClimSST', 'Temperature_Kelvin', 'Temperature_Mean', 'Temperature_Minimum',
-                                       'Temperature_Maximum', 'Temperature_Kelvin_Standard_Deviation', 'Windspeed',
-                                       'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Mean',  'SSTA_Minimum',
-                                       'SSTA_Maximum', 'SSTA_Frequency', 'SSTA_Frequency_Standard_Deviation',
-                                       'SSTA_FrequencyMax', 'SSTA_FrequencyMean', 'SSTA_DHW',
-                                       'SSTA_DHW_Standard_Deviation', 'SSTA_DHWMax', 'SSTA_DHWMean', 'TSA',
-                                       'TSA_Standard_Deviation', 'TSA_Minimum', 'TSA_Maximum', 'TSA_Mean',
-                                       'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_FrequencyMax',
-                                       'TSA_FrequencyMean', 'TSA_DHW', 'TSA_DHW_Standard_Deviation', 'TSA_DHWMax',
-                                       'TSA_DHWMean']])
+X_train = sc_x.fit_transform(X_train)
+X_val = sc_x.transform(X_val)
+X_test = sc_x.transform(X_test)
 ```
 ```python
-# Label encode our target variable 
-label_encoder = LabelEncoder()
-y_train = label_encoder.fit_transform(y_train)
-```
-```python
-# label encode any categorical features
-le = LabelEncoder()
-for column in X_train.columns:
-    if X_train[column].dtype == 'object':
-        X_train[column] = le.fit_transform(X_train[column])
-
 # select the k best features based on mutual information
-selector = SelectKBest(mutual_info_classif, k=15)
-X_new = selector.fit_transform(X_train, y_train)
+selector = SelectKBest(f_regression, k=15)
+
+# Instantiate selected data sets with selected features only
+X_train_selected = selector.fit_transform(X_train, y_train)
+X_val_selected = selector.transform(X_val)
+X_test_selected = selector.transform(X_test)
 
 # get the index of the selected features
-selected_features = X_train.columns[selector.get_support()]
+selected_features_idx = selector.get_support()
+selected_features = [x for x, b in zip(features, selected_features_idx) if b]
+
+# Let's see which features we selected
+print(selected_features)
 ```
-```python
-# Instantiate selected X_train sets with selected features only
-X_train_selected = X_train[selected_features].copy()
-X_test_selected = selector.transform(X_test)
-```
+['Longitude_Degrees', 'Ocean_Name', 'Realm_Name', 'Ecoregion_Name', 'Date_Year', 'Depth_m', 'Temperature_Kelvin', 'SSTA', 'SSTA_Standard_Deviation', 'SSTA_Frequency', 'SSTA_DHW', 'TSA', 'TSA_Frequency', 'TSA_Frequency_Standard_Deviation', 'TSA_DHW']
