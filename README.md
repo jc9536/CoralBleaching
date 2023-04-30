@@ -3,7 +3,7 @@
 
 Authors: Jaimie Chin & Maro Aboelwafa  
 Course: DS.UA.301 - Advanced Topics in Data Science: Machine Learning for Climate Change  
-Date: 17 April 2023  
+Date: 30 April 2023  
 
 ## Background
 The climate issue we are tackling is predicting the likelihood and severity of coral reef bleaching events based on various environmental factors. Coral reefs are sensitive to environmental changes such as temperature, salinity, nutrient levels and water acidity. When these factors reach certain thresholds, they  trigger coral bleaching, a process in which the coral expels the symbiotic algae that live on it, causing the coral to turn white and possibly die.
@@ -28,6 +28,16 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.ensemble import StackingRegressor
+from sklearn.linear_model import LinearRegression
+import plotly.express as px
+import kaleido
+import io
+import PIL
 ```
 ## Load Dataset 
 ```python
@@ -617,14 +627,19 @@ print(f"No. of training examples: {X_train.shape[0]}")
 print(f"No. of validating examples: {X_val.shape[0]}")
 print(f"No. of testing examples: {X_test.shape[0]}")
 ```
-No. of training examples: 22087   
-No. of validating examples: 5522   
-No. of testing examples: 6903 
+No. of training examples: 22087    
+No. of validating examples: 5522    
+No. of testing examples: 6903    
 
 ## Encoding Categorical Features 
 ```python
 # Save feature names
 features = X_train.columns
+
+# Save longitude & latitude for visualizations later 
+X_test_longitude = X_test['Longitude_Degrees'].copy()
+X_test_latitude = X_test['Latitude_Degrees'].copy()
+X_test_year = X_test['Date_Year'].copy()
 
 # label encode any categorical features
 le = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1)
@@ -676,12 +691,32 @@ We'll be training the following 3 different models and seeing which one works be
 
 - Random Forest
 - Gradient Boosting 
-- ANN
+- Neural Network 
 
 ### Random Forest Model 
 ```python
+# Train a random forest regressor on the training set with the best hyperparameters
+rf_base = RandomForestRegressor(random_state=0)
+rf_base.fit(X_train_selected, y_train)
+
+# Predict on the validation set
+y_pred_r_train = rf_base.predict(X_val_selected)
+
+# Calculate the mean squared error and R-squared on the validation set
+rmse_rf_train = mean_squared_error(y_val, y_pred_r_train, squared=False)
+r2_rf_train = r2_score(y_val, y_pred_r_train)
+
+print('Baseline Random Forest Validation RMSE:', rmse_rf_train)
+print('Baseline Random Forest Validation R-squared:', r2_rf_train)
+```
+Baseline Random Forest Validation RMSE: 10.971934640754963      
+Baseline Random Forest Validation R-squared: 0.6940288801761987        
+
+#### There's our original model's performance, it's best to use a gridsearch to find the right hyperparameters for our data and see how much we can improve the model (**Takes about 260 minutes to run**).
+
+```python
 # Create a random forest regressor object
-rf = RandomForestRegressor()
+rf = RandomForestRegressor(random_state=0)
 
 # Define the hyperparameters to search over in a grid search
 param_grid_rf = {
@@ -693,11 +728,13 @@ param_grid_rf = {
 
 # Create a grid search object to find the best hyperparameters
 grid_search_rf = GridSearchCV(estimator=rf, param_grid=param_grid_rf, cv=5, scoring='neg_mean_squared_error')
-grid_search_rf.fit(X_val_selected, y_val)
+grid_search_rf.fit(X_train_selected, y_train)
 
 # Print the best hyperparameters found in the grid search
 print('Best hyperparameters:', grid_search_rf.best_params_)
 ```
+Best hyperparameters: {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 1000}
+
 Our first gridsearch returned the best hyperparameters as - 
 
 {'max_depth': None, 'min_samples_leaf': 1, 'min_samples_split': 2, 'n_estimators': 1000}
@@ -740,13 +777,33 @@ print('Test RMSE:', rmse_rf)
 print('Test R-squared:', r2_rf)
 ```
 
-Test RMSE: 11.106970059417575
-Test R-squared: 0.6921287879163973
+Tuned Random Forest Test RMSE: 11.108964727455216      
+Tuned Random Forest Test R-squared: 0.692018198618785      
 
 ## Gradient Boosting Model 
 ```python
+# Train a gradient boosting regressor on the training set with the best hyperparameters
+gbr_base = GradientBoostingRegressor(random_state=0)
+gbr_base.fit(X_train_selected, y_train)
+
+# Predict on the validation set
+y_pred_gbr_train = gbr_base.predict(X_val_selected)
+
+# Calculate the mean squared error and R-squared on the validation set
+rmse_gbr_train = mean_squared_error(y_val, y_pred_gbr_train, squared=False)
+r2_gbr_train = r2_score(y_val, y_pred_gbr_train)
+
+print('Baseline Gradient Boosting Validation RMSE:', rmse_gbr_train)
+print('Baseline Gradient Boosting Validation R-squared:', r2_gbr_train)
+```
+Baseline Gradient Boosting Validation RMSE: 14.006446822709629       
+Baseline Gradient Boosting Validation R-squared: 0.5013796884282813      
+
+#### There's our original model's performance, it's best to use a gridsearch to find the right hyperparameters for our data and see how much we can improve the model.
+
+```python
 # Create a gradient boosting regressor object
-gbr = GradientBoostingRegressor()
+gbr = GradientBoostingRegressor(random_state=0)
 
 # Define the hyperparameters to search over in a grid search
 param_grid_gbr = {
@@ -759,16 +816,16 @@ param_grid_gbr = {
 
 # Create a grid search object to find the best hyperparameters
 grid_search_gbr = GridSearchCV(estimator=gbr, param_grid=param_grid_gbr, cv=5, scoring='neg_mean_squared_error')
-grid_search_gbr.fit(X_val_selected, y_val)
+grid_search_gbr.fit(X_train_selected, y_train)
 
 # Print the best hyperparameters found in the grid search
 print('Best hyperparameters:', grid_search_gbr.best_params_)
 ```
-Best hyperparameters: {'learning_rate': 0.1, 'max_depth': 6, 'min_samples_leaf': 4, 'min_samples_split': 10, 'n_estimators': 500}
+Best hyperparameters: {'learning_rate': 0.1, 'max_depth': 6, 'min_samples_leaf': 4, 'min_samples_split': 2, 'n_estimators': 1000}
 
 ```python 
 # Train a gradient boosting regressor on the training set with the best hyperparameters
-gbr = GradientBoostingRegressor(**grid_search_gbr.best_params_)
+gbr = GradientBoostingRegressor(**grid_search_gbr.best_params_, random_state=0)
 gbr.fit(X_train_selected, y_train)
 
 # Predict on the test set
@@ -778,16 +835,36 @@ y_pred_gbr = gbr.predict(X_test_selected)
 rmse_gbr = mean_squared_error(y_test, y_pred_gbr, squared=False)
 r2_gbr = r2_score(y_test, y_pred_gbr)
 
-print('Test RMSE:', rmse_gbr)
-print('Test R-squared:', r2_gbr)
+print('Tuned Gradient Boosting Test RMSE:', rmse_gbr)
+print('Tuned Gradient Boosting Test R-squared:', r2_gbr)
 ```
-Test RMSE: 11.419217545275917
-Test R-squared: 0.6745752554792399
+Tuned Gradient Boosting Test RMSE: 11.206984255056312         
+Tuned Gradient Boosting Test R-squared: 0.6865592897505999          
 
-## ANN Model 
+## Neural Network Model (Multi-Layer Perceptron)
 ```python
+# Train an MLP regressor on the training set with the best hyperparameters
+mlp_base = MLPRegressor(random_state=0)
+mlp_base.fit(X_train_selected, y_train)
+
+# Predict on the validation set
+y_pred_mlp_train = mlp_base.predict(X_val_selected)
+
+# Calculate the mean squared error and R-squared on the validation set
+rmse_mlp_train = mean_squared_error(y_val, y_pred_mlp_train, squared=False)
+r2_mlp_train = r2_score(y_val, y_pred_mlp_train)
+
+print('Baseline ANN Validation RMSE:', rmse_mlp_train)
+print('Baseline ANN Validation R-squared:', r2_mlp_train)
+```
+Baseline ANN Validation RMSE: 14.239540015269787         
+Baseline ANN Validation R-squared: 0.4846456656862631          
+
+#### There's our original model's performance, now it's best to use a gridsearch to find the right hyperparameters for our data and see how much we can improve the model.
+
+```python 
 # Create an MLP regressor object
-mlp = MLPRegressor()
+mlp = MLPRegressor(random_state=0)
 
 # Define the hyperparameters to search over in a grid search
 param_grid_mlp = {
@@ -796,19 +873,21 @@ param_grid_mlp = {
     'solver': ['adam', 'lbfgs'],
     'alpha': [0.0001, 0.001, 0.01],
     'learning_rate': ['constant', 'adaptive'],
+    'max_iter': [10000]
 }
 
 # Create a grid search object to find the best hyperparameters
 grid_search_mlp = GridSearchCV(estimator=mlp, param_grid=param_grid_mlp, cv=5, scoring='neg_mean_squared_error')
-grid_search_mlp.fit(X_val_selected, y_val)
+grid_search_mlp.fit(X_train_selected, y_train)
 
 # Print the best hyperparameters found in the grid search
 print('Best hyperparameters:', grid_search_mlp.best_params_)
 ```
+Best hyperparameters: {'activation': 'tanh', 'alpha': 0.01, 'hidden_layer_sizes': (100,), 'learning_rate': 'constant', 'max_iter': 10000, 'solver': 'adam'}
 
 Our first gridsearch returned the best hyperparameters as - 
 
-{'activation': 'tanh', 'alpha': 0.001, 'hidden_layer_sizes': (100,), 'learning_rate': 'adaptive', 'solver': 'adam'}
+{'activation': 'tanh', 'alpha': 0.01, 'hidden_layer_sizes': (100,), 'learning_rate': 'constant', 'solver': 'adam'}
 
 But did we find the best amount of layers for our ANN? Let's confirm.
 
@@ -818,18 +897,293 @@ param_grid_mlp = {
     'hidden_layer_sizes': [(100,), (100,50), (45,30,15)],
     'activation': ['tanh'],
     'solver': ['adam'],
-    'alpha': [0.001],
-    'learning_rate': ['adaptive'],
-    'max_iter': [5000]
+    'alpha': [0.01],
+    'learning_rate': ['constant'],
+    'max_iter': [10000]
 }
 
 # Create a grid search object to find the best hyperparameters
 grid_search_mlp = GridSearchCV(estimator=mlp, param_grid=param_grid_mlp, cv=5, scoring='neg_mean_squared_error')
-grid_search_mlp.fit(X_val_selected, y_val)
+grid_search_mlp.fit(X_train_selected, y_train)
 
 # Print the best hyperparameters found in the grid search
 print('Best hyperparameters:', grid_search_mlp.best_params_)
 ```
-Best hyperparameters: {'activation': 'tanh', 'alpha': 0.001, 'hidden_layer_sizes': (45, 30, 15), 'learning_rate': 'adaptive', 'max_iter': 5000, 'solver': 'adam'}
+Best hyperparameters: {'activation': 'tanh', 'alpha': 0.01, 'hidden_layer_sizes': (100,), 'learning_rate': 'constant', 'max_iter': 10000, 'solver': 'adam'}
 
 Now that we tested the number of layers, the best hyperparameters now are with 3 layers! But is it the most accurate?
+
+```python 
+# Train an MLP regressor on the training set with the best hyperparameters
+mlp = MLPRegressor(**grid_search_mlp.best_params_, random_state=0)
+mlp.fit(X_train_selected, y_train)
+
+# Predict on the test set
+y_pred_mlp = mlp.predict(X_test_selected)
+
+# Calculate the mean squared error and R-squared on the test set
+rmse_mlp = mean_squared_error(y_test, y_pred_mlp, squared=False)
+r2_mlp = r2_score(y_test, y_pred_mlp)
+
+print('Tuned ANN Test RMSE:', rmse_mlp)
+print('Tuned ANN Test R-squared:', r2_mlp)
+```
+Tuned ANN Test RMSE: 13.431174207005547       
+Tuned ANN Test R-squared: 0.549799634381367      
+
+## Final Stacked Model 
+```python
+# Define the base models
+base_models = [('ann', mlp), ('gb', gbr), ('rf', rf)]
+
+# Define the stacking regressor with a random forest meta-model
+stacked_model = StackingRegressor(estimators=base_models, final_estimator=LinearRegression())
+
+# Fit the model on training data
+stacked_model.fit(X_train_selected, y_train)
+
+# Predict on test data
+y_pred = stacked_model.predict(X_test_selected)
+
+# Define lower and upper thresholds
+lower_threshold = 0
+upper_threshold = 100
+
+# Apply clipping to predicted values
+predictions = np.clip(y_pred, lower_threshold, upper_threshold)
+
+# Calculate the mean squared error and R-squared on the test set
+rmse = mean_squared_error(y_test, predictions, squared=False)
+r2 = r2_score(y_test, predictions)
+
+print('Test RMSE:', rmse)
+print('Test R-squared:', r2)
+```
+Test RMSE: 10.961840819338288      
+Test R-squared: 0.7001218232604793      
+
+## Final Visualizations 
+We decided to plot both the Coral Bleaching Percentage as well as encode a categorical Coral Bleaching Severity Level in order to visually assess how accurate our model was able to predict coral bleaching levels. 
+
+Since our data was divided into years, we made a plot for each year present in our testing data.
+
+```python
+# Let's take a look at our residuals 
+residuals = y_test - predictions
+
+# Create the scatter plot
+plt.scatter(predictions, residuals, alpha=0.5)
+plt.axhline(y=0, color='red', linestyle='--')
+plt.xlabel('Predicted Values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot')
+plt.show()
+```
+![ResidualPlot]()
+
+```python
+# Create a results dataframe with our predictions, actual values and residuals
+results = pd.DataFrame({'PREDICTION': predictions, 'ACTUAL': y_test, 'RESIDUALS': np.abs(residuals)})
+```
+
+Let's also encode our Coral Bleaching Percentage into bins of bleaching severity to help us better visualize the differences between our actual and predicted scores. Following the [Reefbase categorical severity coe for bleaching and mortality variables](https://journals.plos.org/plosone/article/figure?id=10.1371/journal.pone.0175490.t002) , we decided to encode our Coral Bleaching Percentage similarly into a categorical value of 'NONE' (0%-<1%), 'MILD' (1%-10%), 'MODERATE' (11%-50%), and 'SEVERE' (>50%). 
+
+```python 
+results['PREDICTED_SEVERITY'] = 0
+for index, row in results.iterrows():
+    if row.loc['PREDICTION'] > 50:
+        results.loc[index, 'PREDICTED_SEVERITY'] = 'SEVERE'
+    elif 0 <= row.loc['PREDICTION'] < 1:
+        results.loc[index, 'PREDICTED_SEVERITY'] = 'NONE'
+    elif 1 <= row.loc['PREDICTION'] <= 10:
+        results.loc[index, 'PREDICTED_SEVERITY'] = 'MILD'
+    elif 10 < row.loc['PREDICTION'] <= 50:
+        results.loc[index, 'PREDICTED_SEVERITY'] = 'MODERATE'
+
+results['ACTUAL_SEVERITY'] = 0
+for index, row in results.iterrows():
+    if row.loc['ACTUAL'] > 50:
+        results.loc[index, 'ACTUAL_SEVERITY'] = 'SEVERE'
+    elif 0 <= row.loc['ACTUAL'] < 1:
+        results.loc[index, 'ACTUAL_SEVERITY'] = 'NONE'
+    elif 1 <= row.loc['ACTUAL'] <= 10:
+        results.loc[index, 'ACTUAL_SEVERITY'] = 'MILD'
+    elif 10 < row.loc['ACTUAL'] <= 50:
+        results.loc[index, 'ACTUAL_SEVERITY'] = 'MODERATE'
+```
+
+```python
+# Let's take a look at our dataframe 
+results.sample(10)
+```
+
+```python
+# Create a new data frame for visualizations 
+map_df = pd.concat([X_test_longitude, X_test_latitude, X_test_year, results.copy()], axis=1)
+map_df.sort_values(by='Date_Year', inplace=True)
+map_df
+```
+
+### Actual Coral Bleaching Visualizations
+#### Actual Coral Bleaching Percentage by Year Visualization
+
+```python
+# Set up plotly for notebook environment 
+from plotly.offline import init_notebook_mode
+init_notebook_mode(connected=True)
+```
+
+```python
+# Plot actual severity on a map
+fig = px.scatter_geo(map_df,
+                     lat='Latitude_Degrees',
+                     lon='Longitude_Degrees',
+                     color='ACTUAL',
+                     animation_frame='Date_Year',
+                     projection='equirectangular',
+                     color_continuous_scale=[(0, 'cornflowerblue'),
+                                             (0.01, 'gold'),
+                                             (0.11, 'orange'),
+                                             (0.51, 'firebrick'),
+                                             (1, 'maroon')],
+                     range_color=[0, 100],
+                     width=750,
+                     height=500,
+                     title='Actual Coral Bleaching Percentage by Year')
+
+# display the figure
+fig.show()
+
+# generate images for each step in animation
+frames = []
+years = map_df['Date_Year'].unique().tolist()
+
+for s, fr in enumerate(fig.frames):
+    # set main traces to appropriate traces within plotly frame
+    fig.update(data=fr.data)
+    # move slider to correct place
+    fig.layout.sliders[0].update(active=s)
+    # generate image of current state
+    frames.append(PIL.Image.open(io.BytesIO(fig.to_image(format="png"))))
+    fig.write_image("GraphsImages/ActualPercent/" + str(years[s]) + ".png",
+                    format='png', engine='kaleido')
+
+# create animated GIF
+frames[0].save(
+    "GraphsImages/ActualPercent/ActualPercentbyYear.gif",
+    save_all=True,
+    append_images=frames[1:],
+    optimize=True,
+    duration=500,
+    loop=0,
+)
+```
+![](https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/ActualPercent/ActualPercentbyYear.gif?raw=true)
+
+#### Actual Categorical Coral Bleaching Severity Visualization
+
+```python
+# Plot actual categorical severity on a map, due to limitations with the map library, a for loop will be used
+
+for year in map_df['Date_Year'].unique():
+
+    # Create title for plot
+    title = 'Actual Categorical Severity in ' + str(year)
+
+    # Create the plot per year
+    fig = px.scatter_geo(map_df[map_df['Date_Year'] == year],
+                         lat='Latitude_Degrees',
+                         lon='Longitude_Degrees',
+                         color='ACTUAL_SEVERITY',
+                         projection='equirectangular',
+                         category_orders={'ACTUAL_SEVERITY': ['NONE', 'MILD', 'MODERATE', 'SEVERE']},
+                         color_discrete_map={
+                             'NONE': 'cornflowerblue', 'MILD': 'gold', 'MODERATE': 'orange', 'SEVERE': 'firebrick'},
+                         width=750,
+                         height=500,
+                         title=title)
+
+    # display the figure
+    fig.show()
+    output = "GraphsImages/ActualCategorical/" + str(year) + ".png"
+    fig.write_image(output, format='png', engine='kaleido')
+```
+![]()
+
+#### Predicted Coral Bleaching Percentage by Year Visualization
+
+```python
+# Plot predicted severity on a map 
+fig = px.scatter_geo(map_df,
+                     lat='Latitude_Degrees',
+                     lon='Longitude_Degrees',
+                     color='PREDICTION',
+                     animation_frame='Date_Year',
+                     projection='equirectangular',
+                     color_continuous_scale=[(0, 'cornflowerblue'),
+                                             (0.01, 'gold'),
+                                             (0.11, 'orange'),
+                                             (0.51, 'firebrick'),
+                                             (1, 'maroon')],
+                     range_color= [0, 100],
+                     width= 750,
+                     height= 500,
+                     title='Predicted Coral Bleaching Percentage by Year')
+
+# display the figure
+fig.show()
+
+# generate images for each step in animation
+frames = []
+years = map_df['Date_Year'].unique().tolist()
+
+for s, fr in enumerate(fig.frames):
+    # set main traces to appropriate traces within plotly frame
+    fig.update(data=fr.data)
+    # move slider to correct place
+    fig.layout.sliders[0].update(active=s)
+    # generate image of current state
+    frames.append(PIL.Image.open(io.BytesIO(fig.to_image(format="png"))))
+    fig.write_image("GraphsImages/PredictedPercent/" + str(years[s]) + ".png",
+                    format='png', engine='kaleido')
+
+# create animated GIF
+frames[0].save(
+    "GraphsImages/PredictedPercent/PredictedPercentbyYear.gif",
+    save_all=True,
+    append_images=frames[1:],
+    optimize=True,
+    duration=500,
+    loop=0,
+)
+```
+![]('https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/PredictedPercent/PredictedPercentbyYear.gif?raw=true')
+
+#### Predicted Categorical Coral Bleaching Severity Visualization
+
+```python
+# Plot predicted categorical severity on a map, due to limitations with the map library, a for loop will be used 
+for year in map_df['Date_Year'].unique():
+
+    # Create title for plot
+    title = 'Predicted Categorical Severity in ' + str(year)
+
+    # Create the plot per year 
+    fig = px.scatter_geo(map_df[map_df['Date_Year'] == year],
+                        lat='Latitude_Degrees',
+                        lon='Longitude_Degrees',
+                        color='PREDICTED_SEVERITY',
+                        projection='equirectangular',
+                         category_orders={'PREDICTED_SEVERITY': ['NONE', 'MILD', 'MODERATE', 'SEVERE']},
+                        color_discrete_map={'NONE': 'cornflowerblue', 'MILD': 'gold', 'MODERATE': 'orange', 'SEVERE': 'firebrick'},
+                        width=750,
+                        height=500,
+                        title=title)
+
+    # display the figure
+    fig.show()
+    output = "GraphsImages/PredictedCategorical/" + str(year) + ".png"
+    fig.write_image(output, format='png', engine='kaleido')
+```
+
+![]()
