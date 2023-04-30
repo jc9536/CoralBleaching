@@ -979,7 +979,7 @@ plt.ylabel('Residuals')
 plt.title('Residual Plot')
 plt.show()
 ```
-![ResidualPlot]()
+![ResidualPlot](https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/ResidualPlot.png?raw=true)
 
 ```python
 # Create a results dataframe with our predictions, actual values and residuals
@@ -1108,8 +1108,9 @@ for year in map_df['Date_Year'].unique():
     output = "GraphsImages/ActualCategorical/" + str(year) + ".png"
     fig.write_image(output, format='png', engine='kaleido')
 ```
-![]()
+![](https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/ActualCategorical/ActualCategoricalbyYear.gif?raw=true)
 
+### Predicted Coral Bleaching Visualizations
 #### Predicted Coral Bleaching Percentage by Year Visualization
 
 ```python
@@ -1157,7 +1158,7 @@ frames[0].save(
     loop=0,
 )
 ```
-![]('https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/PredictedPercent/PredictedPercentbyYear.gif?raw=true')
+![](https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/PredictedPercent/PredictedPercentbyYear.gif?raw=true)
 
 #### Predicted Categorical Coral Bleaching Severity Visualization
 
@@ -1186,4 +1187,4 @@ for year in map_df['Date_Year'].unique():
     fig.write_image(output, format='png', engine='kaleido')
 ```
 
-![]()
+![](https://github.com/jc9536/CoralBleaching/blob/main/GraphsImages/PredictedCategorical/PredictedCategoricalbyYear.gif?raw=true)
