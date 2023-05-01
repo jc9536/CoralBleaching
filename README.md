@@ -195,19 +195,19 @@ Otherwise, looking at the other null values, it seems that there are some featur
 
 ### Dropping Irrelevant/Redundant Features 
 Based on prior literature, we can drop some irrelevant and redundant features:
-1. Site_ID - Irrelevant to predicting bleaching events due to coral environment
-2. Sample_ID - Irrelevant to predicting bleaching events due to coral environment
-3. Data_Source (Source of data set) - Irrelevant to predicting bleaching events due to coral environment 
-4. Date_Day - Month and Year are more generalizable for this data 
-5. Date - Month and Year are more generalizable for this data
-6. Reef_ID (Unique identifier from Reef Check data) - Irrelevant to predicting bleaching events due to coral environment 
-7. State_Island_Province_Name (The state, territory (e.g., Guam) or island group (e.g., Hawaiian Islands) where sampling took place) - Already using latitude and longitude
-8. City_Town_Name (The region, city, or nearest town, where sampling took place) - Already using latitude and longitude
-9. Site_Name (The accepted name of the site or the name given by the team that sampled the reef) - Irrelevant to predicting bleaching events due to coral environment 
-10. Bleaching_Level (Reef Check data, coral population or coral colony) - Less detailed than target feature 'Percent_Bleaching'
-11. Site_Comments - Too variant and many nulls
-12. Sample_Comments - Too variant and many nulls
-13. Bleaching_Comments - Too variant and many nulls
+1. **Site_ID** - Irrelevant to predicting bleaching events due to coral environment
+2. **Sample_ID** - Irrelevant to predicting bleaching events due to coral environment
+3. **Data_Source** (Source of data set) - Irrelevant to predicting bleaching events due to coral environment 
+4. **Date_Day** - Month and Year are more generalizable for this data 
+5. **Date** - Month and Year are more generalizable for this data
+6. **Reef_ID** (Unique identifier from Reef Check data) - Irrelevant to predicting bleaching events due to coral environment 
+7. **State_Island_Province_Name** (The state, territory (e.g., Guam) or island group (e.g., Hawaiian Islands) where sampling took place) - Already using latitude and longitude
+8. **City_Town_Name** (The region, city, or nearest town, where sampling took place) - Already using latitude and longitude
+9. **Site_Name** (The accepted name of the site or the name given by the team that sampled the reef) - Irrelevant to predicting bleaching events due to coral environment 
+10. **Bleaching_Level** (Reef Check data, coral population or coral colony) - Less detailed than target feature 'Percent_Bleaching'
+11. **Site_Comments** - Too variant and many nulls
+12. **Sample_Comments** - Too variant and many nulls
+13. **Bleaching_Comments** - Too variant and many nulls
 
 ```python
 # Drop irrelevant/redundant features
